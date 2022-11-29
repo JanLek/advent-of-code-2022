@@ -5,12 +5,12 @@ const _: &str = include_str!("input.txt");
 
 #[must_use]
 pub fn part_1() -> i32 {
-    todo!()
+    123
 }
 
 #[must_use]
 pub fn part_2() -> i32 {
-    todo!()
+    123
 }
 
 #[cfg(test)]
