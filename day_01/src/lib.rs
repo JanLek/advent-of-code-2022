@@ -1,9 +1,14 @@
+#![deny(clippy::all, clippy::pedantic)]
+#![allow(clippy::missing_panics_doc)]
+
 const _: &str = include_str!("input.txt");
 
+#[must_use]
 pub fn part_1() -> i32 {
     todo!()
 }
 
+#[must_use]
 pub fn part_2() -> i32 {
     todo!()
 }
