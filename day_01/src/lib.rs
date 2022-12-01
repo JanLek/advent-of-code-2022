@@ -14,45 +14,17 @@ pub fn part_2() -> u32 {
 }
 
 fn find_max_calories(input: &str) -> u32 {
-    let mut max = 0;
-    let mut current = 0;
-
-    for line in input.lines() {
-        if line.is_empty() {
-            current = 0;
-            continue;
-        }
-        
-        let calories: u32 = parse_calories(line);
-        current += calories;
-
-        if current > max {
-            max = current;
-        }
-    }
-
-    max
+    calories_per_elf(input).max().unwrap()
 }
 
 fn find_top_3_max_calories(input: &str) -> u32 {
-    let mut elves_snacks = Vec::new();
-    let mut current = 0;
+    let mut counts: Vec<_> = calories_per_elf(input).collect();
+    counts.sort_unstable();
+    counts.into_iter().rev().take(3).sum()
+}
 
-    for line in input.lines() {
-        if line.is_empty() {
-            elves_snacks.push(current);
-            current = 0;
-            continue;
-        }
-        
-        let calories: u32 = parse_calories(line);
-        current += calories;
-    }
-    elves_snacks.push(current);
-
-    elves_snacks.sort_unstable();
-
-    elves_snacks.iter().rev().take(3).sum()
+fn calories_per_elf(input: &str) -> impl Iterator<Item = u32> + '_ {
+    input.split("\n\n").map(|i| i.lines().map(parse_calories).sum())
 }
 
 // Custom parse function for minor speed improvement
