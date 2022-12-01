@@ -24,7 +24,9 @@ fn find_top_3_max_calories(input: &str) -> u32 {
 }
 
 fn calories_per_elf(input: &str) -> impl Iterator<Item = u32> + '_ {
-    input.split("\n\n").map(|i| i.lines().map(parse_calories).sum())
+    input
+        .split("\n\n")
+        .map(|i| i.lines().map(parse_calories).sum())
 }
 
 // Custom parse function for minor speed improvement
