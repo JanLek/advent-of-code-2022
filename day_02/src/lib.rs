@@ -1,6 +1,9 @@
-use HandShape::*;
-use Outcome::*;
+#![deny(clippy::all, clippy::pedantic)]
 
+use HandShape::{Paper, Rock, Scissors};
+use Outcome::{Draw, Loss, Win};
+
+#[must_use]
 pub fn part_1(input: &str) -> u32 {
     input
         .lines()
@@ -12,6 +15,7 @@ pub fn part_1(input: &str) -> u32 {
         .sum()
 }
 
+#[must_use]
 pub fn part_2(input: &str) -> u32 {
     input
         .lines()
@@ -38,19 +42,16 @@ enum HandShape {
 impl From<u8> for HandShape {
     fn from(b: u8) -> Self {
         match b {
-            b'A' => Rock,
-            b'B' => Paper,
-            b'C' => Scissors,
-            b'X' => Rock,
-            b'Y' => Paper,
-            b'Z' => Scissors,
+            b'A' | b'X' => Rock,
+            b'B' | b'Y' => Paper,
+            b'C' | b'Z' => Scissors,
             _ => panic!(),
         }
     }
 }
 
 impl HandShape {
-    fn score(&self) -> u32 {
+    fn score(self) -> u32 {
         match self {
             Rock => 1,
             Paper => 2,
@@ -58,7 +59,7 @@ impl HandShape {
         }
     }
 
-    fn beats(&self) -> Self {
+    fn beats(self) -> Self {
         match self {
             Rock => Scissors,
             Paper => Rock,
@@ -66,8 +67,8 @@ impl HandShape {
         }
     }
 
-    fn play_round(&self, other: Self) -> Outcome {
-        if self == &other {
+    fn play_round(self, other: Self) -> Outcome {
+        if self == other {
             Draw
         } else if self.beats() == other {
             Win
@@ -96,7 +97,7 @@ impl From<u8> for Outcome {
 }
 
 impl Outcome {
-    fn score(&self) -> u32 {
+    fn score(self) -> u32 {
         match self {
             Win => 6,
             Draw => 3,
