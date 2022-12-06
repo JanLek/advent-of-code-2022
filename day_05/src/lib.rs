@@ -1,6 +1,9 @@
 #![deny(clippy::all, clippy::pedantic)]
 #![allow(clippy::missing_panics_doc)]
 
+type Stacks = Vec<Vec<char>>;
+type Steps = Vec<(u8, usize, usize)>;
+
 #[must_use]
 pub fn part_1(input: &str) -> String {
     let (mut stacks, steps) = parse_input(input);
@@ -15,7 +18,7 @@ pub fn part_2(input: &str) -> String {
     top_items(stacks)
 }
 
-fn parse_input(input: &str) -> (Vec<Vec<char>>, Vec<(u8, usize, usize)>) {
+fn parse_input(input: &str) -> (Stacks, Steps) {
     let (stacks_input, steps_input) = input.split_once("\n\n").unwrap();
     (parse_stacks(stacks_input), parse_steps(steps_input))
 }
@@ -26,9 +29,9 @@ fn parse_stacks(stacks_input: &str) -> Vec<Vec<char>> {
     let num_stacks: usize = (last_line.as_bytes()[last_line.len() - 2] - b'0') as usize;
     let mut stacks: Vec<Vec<char>> = vec![Vec::new(); num_stacks];
     for line in stacks_lines.into_iter().rev() {
-        for i in 0..num_stacks {
+        for (i, stack) in stacks.iter_mut().enumerate() {
             match line.as_bytes()[1 + i * 4] {
-                byte @ b'A'..=b'Z' => stacks[i].push(byte as char),
+                byte @ b'A'..=b'Z' => stack.push(byte as char),
                 b' ' => (),
                 byte => panic!(
                     "Unexpected character: '{}' in line: \"{}\"",
@@ -57,7 +60,7 @@ fn parse_steps(steps_input: &str) -> Vec<(u8, usize, usize)> {
     steps
 }
 
-fn crate_mover_9000(steps: Vec<(u8, usize, usize)>, stacks: &mut Vec<Vec<char>>) {
+fn crate_mover_9000(steps: Vec<(u8, usize, usize)>, stacks: &mut [Vec<char>]) {
     for (num_items, from, to) in steps {
         for _ in 0..num_items {
             let item = stacks[from - 1].pop().unwrap();
@@ -66,7 +69,7 @@ fn crate_mover_9000(steps: Vec<(u8, usize, usize)>, stacks: &mut Vec<Vec<char>>)
     }
 }
 
-fn crate_mover_9001(steps: Vec<(u8, usize, usize)>, stacks: &mut Vec<Vec<char>>) {
+fn crate_mover_9001(steps: Vec<(u8, usize, usize)>, stacks: &mut [Vec<char>]) {
     let mut crane_stack = Vec::new();
     for (num_items, from, to) in steps {
         for _ in 0..num_items {
