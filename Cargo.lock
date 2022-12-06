@@ -197,11 +197,14 @@ dependencies = [
 
 [[package]]
 name = "day_05"
-version = "0.1.0"
+version = "0.0.0"
 
 [[package]]
 name = "day_06"
-version = "0.1.0"
+version = "0.0.0"
+dependencies = [
+ "criterion",
+]
 
 [[package]]
 name = "either"

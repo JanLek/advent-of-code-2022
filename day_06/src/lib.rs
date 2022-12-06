@@ -1,7 +1,5 @@
 #![deny(clippy::all, clippy::pedantic)]
 
-use std::collections::HashSet;
-
 #[must_use]
 pub fn part_1(input: &str) -> usize {
     let buffer = input.as_bytes();
@@ -17,12 +15,22 @@ pub fn part_2(input: &str) -> usize {
 fn find_unique_sequence(buffer: &[u8], length: usize) -> usize {
     for i in length - 1..buffer.len() {
         let sequence = &buffer[i + 1 - length..=i];
-        let deduped: HashSet<u8> = HashSet::from_iter(sequence.iter().copied());
-        if deduped.len() == sequence.len() {
+        if is_unique_sequence(sequence) {
             return i + 1;
         }
     }
     panic!()
+}
+
+fn is_unique_sequence(sequence: &[u8]) -> bool {
+    for i in 0..sequence.len() {
+        let element = sequence[i];
+        let rest = &sequence[i + 1..];
+        if rest.contains(&element) {
+            return false;
+        }
+    }
+    true
 }
 
 #[cfg(test)]
