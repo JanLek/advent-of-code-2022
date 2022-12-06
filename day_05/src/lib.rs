@@ -17,7 +17,10 @@ pub fn part_2(input: &str) -> String {
 
 fn parse_input(input: &str) -> (Vec<Vec<char>>, Vec<(u8, usize, usize)>) {
     let (stacks_input, steps_input) = input.split_once("\n\n").unwrap();
+    (parse_stacks(stacks_input), parse_steps(steps_input))
+}
 
+fn parse_stacks(stacks_input: &str) -> Vec<Vec<char>> {
     let mut stacks_lines: Vec<&str> = stacks_input.lines().collect();
     let last_line = stacks_lines.pop().unwrap();
     let num_stacks: usize = (last_line.as_bytes()[last_line.len() - 2] - b'0') as usize;
@@ -34,7 +37,10 @@ fn parse_input(input: &str) -> (Vec<Vec<char>>, Vec<(u8, usize, usize)>) {
             }
         }
     }
+    stacks
+}
 
+fn parse_steps(steps_input: &str) -> Vec<(u8, usize, usize)> {
     let steps: Vec<(u8, usize, usize)> = steps_input
         .lines()
         .map(|mut line| {
@@ -48,8 +54,7 @@ fn parse_input(input: &str) -> (Vec<Vec<char>>, Vec<(u8, usize, usize)>) {
             )
         })
         .collect();
-
-    (stacks, steps)
+    steps
 }
 
 fn crate_mover_9000(steps: Vec<(u8, usize, usize)>, stacks: &mut Vec<Vec<char>>) {
