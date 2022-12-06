@@ -45,9 +45,9 @@ fn parse_section_assignment(input: &str) -> RangeInclusive<u8> {
     start.parse().unwrap()..=end.parse().unwrap()
 }
 
-fn overlap(left: &RangeInclusive<u8>, right: &RangeInclusive<u8>) -> bool {
-    left.start() <= right.start() && left.end() <= right.start()
-}
+// fn overlap(left: &RangeInclusive<u8>, right: &RangeInclusive<u8>) -> bool {
+//     left.start() <= right.start() && left.end() <= right.start()
+// }
 
 #[cfg(test)]
 mod tests {
