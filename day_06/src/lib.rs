@@ -2,35 +2,23 @@
 
 #[must_use]
 pub fn part_1(input: &str) -> usize {
-    let buffer = input.as_bytes();
-    find_unique_sequence(buffer, 4)
+    find_unique_sequence(input.as_bytes(), 4)
 }
 
 #[must_use]
 pub fn part_2(input: &str) -> usize {
-    let buffer = input.as_bytes();
-    find_unique_sequence(buffer, 14)
+    find_unique_sequence(input.as_bytes(), 14)
 }
 
 fn find_unique_sequence(buffer: &[u8], length: usize) -> usize {
-    for i in length - 1..buffer.len() {
-        let sequence = &buffer[i + 1 - length..=i];
-        if is_unique_sequence(sequence) {
-            return i + 1;
-        }
-    }
-    panic!()
+    buffer.windows(length).position(all_bytes_unique).unwrap() + length
 }
 
-fn is_unique_sequence(sequence: &[u8]) -> bool {
-    for i in 0..sequence.len() {
-        let element = sequence[i];
-        let rest = &sequence[i + 1..];
-        if rest.contains(&element) {
-            return false;
-        }
-    }
-    true
+fn all_bytes_unique(sequence: &[u8]) -> bool {
+    sequence
+        .iter()
+        .enumerate()
+        .all(|(i, byte)| !sequence[i + 1..].contains(byte))
 }
 
 #[cfg(test)]
