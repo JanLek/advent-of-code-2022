@@ -207,7 +207,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "day_07"
+name = "day_08"
 version = "0.0.0"
 dependencies = [
  "criterion",
