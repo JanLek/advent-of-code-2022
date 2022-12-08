@@ -12,8 +12,13 @@ pub fn part_1(input: &str) -> usize {
 }
 
 #[must_use]
-pub fn part_2(input: &str) -> u32 {
-    todo!()
+pub fn part_2(input: &str) -> usize {
+    let grove = Grove::from(input);
+    (0..grove.num_rows)
+        .flat_map(|row| (0..grove.row_length).map(move |column| (row, column)))
+        .map(|(row, column)| scenic_score(&grove, row, column))
+        .max()
+        .unwrap()
 }
 
 fn is_visible(grove: &Grove, row: usize, column: usize) -> bool {
@@ -22,6 +27,22 @@ fn is_visible(grove: &Grove, row: usize, column: usize) -> bool {
         || (row + 1..grove.num_rows).all(|r| grove[(r, column)] < tree_height)
         || (0..column).all(|c| grove[(row, c)] < tree_height)
         || (column + 1..grove.row_length).all(|c| grove[(row, c)] < tree_height)
+}
+
+fn scenic_score(grove: &Grove, row: usize, column: usize) -> usize {
+    let tree_height = grove[(row, column)];
+    (0..row)
+        .take_while(|&r| grove[(r, column)] <= tree_height)
+        .count()
+        * (row + 1..grove.num_rows)
+            .take_while(|&r| grove[(r, column)] <= tree_height)
+            .count()
+        * (0..column)
+            .take_while(|&c| grove[(row, c)] <= tree_height)
+            .count()
+        * (column + 1..grove.row_length)
+            .take_while(|&c| grove[(row, c)] <= tree_height)
+            .count()
 }
 
 struct Grove<'a> {
@@ -69,9 +90,8 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "TODO"]
     fn part_2_sample_test() {
-        assert_eq!(part_2(SAMPLE_INPUT), 0);
+        assert_eq!(part_2(SAMPLE_INPUT), 8);
     }
 
     #[test]
