@@ -31,18 +31,22 @@ fn is_visible(grove: &Grove, row: usize, column: usize) -> bool {
 
 fn scenic_score(grove: &Grove, row: usize, column: usize) -> usize {
     let tree_height = grove[(row, column)];
-    (0..row)
-        .take_while(|&r| grove[(r, column)] <= tree_height)
-        .count()
-        * (row + 1..grove.num_rows)
-            .take_while(|&r| grove[(r, column)] <= tree_height)
-            .count()
-        * (0..column)
-            .take_while(|&c| grove[(row, c)] <= tree_height)
-            .count()
-        * (column + 1..grove.row_length)
-            .take_while(|&c| grove[(row, c)] <= tree_height)
-            .count()
+
+    count_visible_trees(grove, tree_height, (0..row).rev().map(|r| (r, column)))
+     * count_visible_trees(grove, tree_height, (row+1..grove.num_rows).map(|r| (r, column)))
+     * count_visible_trees(grove, tree_height, (0..column).rev().map(|c| (row, c)))
+     * count_visible_trees(grove, tree_height, (column+1..grove.row_length).rev().map(|c| (row, c)))
+}
+
+fn count_visible_trees(grove: &Grove, tree_height: u8, points: impl Iterator<Item=(usize, usize)>) -> usize {
+    let mut count = 0;
+    for (row, column) in points {
+        count += 1;
+        if grove[(row, column)] >= tree_height {
+            break;
+        }
+    }
+    count
 }
 
 struct Grove<'a> {
