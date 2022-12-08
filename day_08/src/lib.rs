@@ -33,12 +33,24 @@ fn scenic_score(grove: &Grove, row: usize, column: usize) -> usize {
     let tree_height = grove[(row, column)];
 
     count_visible_trees(grove, tree_height, (0..row).rev().map(|r| (r, column)))
-     * count_visible_trees(grove, tree_height, (row+1..grove.num_rows).map(|r| (r, column)))
-     * count_visible_trees(grove, tree_height, (0..column).rev().map(|c| (row, c)))
-     * count_visible_trees(grove, tree_height, (column+1..grove.row_length).rev().map(|c| (row, c)))
+        * count_visible_trees(
+            grove,
+            tree_height,
+            (row + 1..grove.num_rows).map(|r| (r, column)),
+        )
+        * count_visible_trees(grove, tree_height, (0..column).rev().map(|c| (row, c)))
+        * count_visible_trees(
+            grove,
+            tree_height,
+            (column + 1..grove.row_length).map(|c| (row, c)),
+        )
 }
 
-fn count_visible_trees(grove: &Grove, tree_height: u8, points: impl Iterator<Item=(usize, usize)>) -> usize {
+fn count_visible_trees(
+    grove: &Grove,
+    tree_height: u8,
+    points: impl Iterator<Item = (usize, usize)>,
+) -> usize {
     let mut count = 0;
     for (row, column) in points {
         count += 1;
@@ -99,8 +111,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "TODO"]
     fn part_2_test() {
-        assert_eq!(part_2(INPUT), 0);
+        assert_eq!(part_2(INPUT), 230_112);
     }
 }
