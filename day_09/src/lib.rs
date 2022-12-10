@@ -8,18 +8,32 @@ use std::{
 
 #[must_use]
 pub fn part_1(input: &str) -> usize {
-    let head_motions = input.lines().map(|line| {
+    let head_motions = parse(input);
+    simulate_rope::<2>(head_motions)
+}
+
+#[must_use]
+pub fn part_2(input: &str) -> usize {
+    let head_motions = parse(input);
+    simulate_rope::<10>(head_motions)
+}
+
+fn parse(input: &str) -> impl Iterator<Item = (&str, u8)> {
+    input.lines().map(|line| {
         let (direction, num_steps) = line.split_once(' ').unwrap();
         (direction, num_steps.parse::<u8>().unwrap())
-    });
+    })
+}
 
-    let mut head: (i16, i16) = (0, 0);
-    let mut tail: (i16, i16) = (0, 0);
+fn simulate_rope<'a, const L: usize>(head_motions: impl Iterator<Item = (&'a str, u8)>) -> usize {
+    let mut rope: [(i16, i16); L] = [(0, 0); L];
+
     let mut tail_history = HashSet::new();
-    tail_history.insert(tail);
+    tail_history.insert(rope[L - 1]);
 
     for (direction, num_steps) in head_motions {
         for _ in 0..num_steps {
+            let head = &mut rope[0];
             match direction {
                 "U" => head.1 += 1,
                 "R" => head.0 += 1,
@@ -28,29 +42,28 @@ pub fn part_1(input: &str) -> usize {
                 _ => panic!(),
             };
 
-            if (head.0 - tail.0).abs() > 1 || (head.1 - tail.1).abs() > 1 {
-                match head.0.cmp(&tail.0) {
-                    Greater => tail.0 += 1,
-                    Equal => (),
-                    Less => tail.0 -= 1,
+            for i in 1..L {
+                let previous_knot = rope[i - 1];
+                let knot = &mut rope[i];
+                if previous_knot.0.abs_diff(knot.0) > 1 || previous_knot.1.abs_diff(knot.1) > 1 {
+                    match previous_knot.0.cmp(&knot.0) {
+                        Greater => knot.0 += 1,
+                        Equal => (),
+                        Less => knot.0 -= 1,
+                    }
+                    match previous_knot.1.cmp(&knot.1) {
+                        Greater => knot.1 += 1,
+                        Equal => (),
+                        Less => knot.1 -= 1,
+                    }
                 }
-                match head.1.cmp(&tail.1) {
-                    Greater => tail.1 += 1,
-                    Equal => (),
-                    Less => tail.1 -= 1,
-                }
-
-                tail_history.insert(tail);
             }
+
+            tail_history.insert(rope[L - 1]);
         }
     }
 
     tail_history.len()
-}
-
-#[must_use]
-pub fn part_2(input: &str) -> u32 {
-    todo!()
 }
 
 #[cfg(test)]
@@ -58,27 +71,29 @@ mod tests {
     use super::*;
 
     const SAMPLE_INPUT: &str = include_str!("../sample-input.txt");
+    const LARGE_SAMPLE_INPUT: &str = include_str!("../large-sample-input.txt");
     const INPUT: &str = include_str!("../input.txt");
 
     #[test]
+    #[ignore]
     fn part_1_sample_test() {
         assert_eq!(part_1(SAMPLE_INPUT), 13);
     }
 
     #[test]
+    #[ignore]
     fn part_1_test() {
         assert_eq!(part_1(INPUT), 6_376);
     }
 
     #[test]
-    #[ignore = "TODO"]
     fn part_2_sample_test() {
-        assert_eq!(part_2(SAMPLE_INPUT), 0);
+        assert_eq!(part_2(SAMPLE_INPUT), 1);
+        assert_eq!(part_2(LARGE_SAMPLE_INPUT), 36);
     }
 
     #[test]
-    #[ignore = "TODO"]
     fn part_2_test() {
-        assert_eq!(part_2(INPUT), 0);
+        assert_eq!(part_2(INPUT), 2_607);
     }
 }
