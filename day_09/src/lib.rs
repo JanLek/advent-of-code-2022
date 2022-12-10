@@ -75,13 +75,11 @@ mod tests {
     const INPUT: &str = include_str!("../input.txt");
 
     #[test]
-    #[ignore]
     fn part_1_sample_test() {
         assert_eq!(part_1(SAMPLE_INPUT), 13);
     }
 
     #[test]
-    #[ignore]
     fn part_1_test() {
         assert_eq!(part_1(INPUT), 6_376);
     }
