@@ -18,13 +18,12 @@ pub fn part_1(input: &str) -> i32 {
         .map(|line| Instruction::from_str(line).unwrap());
     let mut cpu = Cpu::new(instructions);
 
-    for steps in once(20).chain(repeat(40)).take(6) {
-        for _ in 0..(steps - 1) {
+    for steps in once(19).chain(repeat(40)).take(6) {
+        for _ in 0..steps {
             cpu.tick();
         }
         let signal_strenth = (cpu.cycles + 1) * cpu.x_register;
         result += signal_strenth;
-        cpu.tick();
     }
 
     result
