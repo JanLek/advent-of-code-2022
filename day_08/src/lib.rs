@@ -1,6 +1,6 @@
 #![deny(clippy::all, clippy::pedantic)]
 
-use std::ops::Index;
+use std::{mem::replace, ops::Index};
 
 #[must_use]
 pub fn part_1(input: &str) -> usize {
@@ -51,14 +51,17 @@ impl Grove<'_> {
 
     fn count_in_line_of_sight(&self, mut points: impl Iterator<Item = (usize, usize)>) -> usize {
         let tree_height = self[points.next().unwrap()];
-        let mut count = 0;
-        for (row, column) in points {
-            count += 1;
-            if self[(row, column)] >= tree_height {
-                break;
-            }
-        }
-        count
+        points
+            .take_while_inclusive(|&(row, column)| self[(row, column)] < tree_height)
+            .count()
+        // let mut count = 0;
+        // for (row, column) in points {
+        //     count += 1;
+        //     if self[(row, column)] >= tree_height {
+        //         break;
+        //     }
+        // }
+        // count
     }
 }
 
@@ -80,6 +83,57 @@ impl Index<(usize, usize)> for Grove<'_> {
 
     fn index(&self, (row, column): (usize, usize)) -> &Self::Output {
         &self.trees[row * (self.num_columns + 1) + column]
+    }
+}
+
+trait TakeWhileInclusiveExt<P>
+where
+    Self: Sized + Iterator,
+{
+    fn take_while_inclusive(self, predicate: P) -> TakeWhileInclusive<Self, P>;
+}
+
+impl<I, P> TakeWhileInclusiveExt<P> for I
+where
+    I: Sized + Iterator,
+    P: FnMut(&I::Item) -> bool,
+{
+    fn take_while_inclusive(mut self, predicate: P) -> TakeWhileInclusive<I, P> {
+        TakeWhileInclusive {
+            iterator: self,
+            predicate,
+            flag: false,
+        }
+    }
+}
+
+struct TakeWhileInclusive<I, P>
+where
+    I: Iterator,
+{
+    iterator: I,
+    predicate: P,
+    flag: bool,
+}
+
+impl<I, P> Iterator for TakeWhileInclusive<I, P>
+where
+    I: Iterator,
+    P: FnMut(&I::Item) -> bool,
+{
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<I::Item> {
+        if self.flag {
+            None
+        } else if let Some(value) = self.iterator.next() {
+            if !(self.predicate)(&value) {
+                self.flag = true
+            }
+            Some(value)
+        } else {
+            None
+        }
     }
 }
 
@@ -108,5 +162,15 @@ mod tests {
     #[test]
     fn part_2_test() {
         assert_eq!(part_2(INPUT), 230_112);
+    }
+
+    #[test]
+    fn test_take_while_inclusive() {
+        let numbers = [1, 2, 3, 4, 5, 6];
+        let taken: Vec<_> = numbers
+            .into_iter()
+            .take_while_inclusive(|&n| n < 3)
+            .collect();
+        assert_eq!(taken, vec![1, 2, 3]);
     }
 }

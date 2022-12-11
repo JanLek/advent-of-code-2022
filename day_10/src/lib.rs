@@ -2,10 +2,11 @@
 #![allow(clippy::missing_panics_doc)]
 
 use std::{
+    fmt::{Display, Formatter, Result as FormatResult},
     iter::{once, repeat},
     str::FromStr,
 };
-use CpuState::{Adding, Ready};
+use CpuState::{Adding, Done, Ready};
 use Instruction::{AddX, Noop};
 
 #[must_use]
@@ -30,8 +31,19 @@ pub fn part_1(input: &str) -> i32 {
 }
 
 #[must_use]
-pub fn part_2(input: &str) -> usize {
-    todo!()
+pub fn part_2(input: &str) -> String {
+    let instructions = input
+        .lines()
+        .map(|line| Instruction::from_str(line).unwrap());
+    let mut cpu = Cpu::new(instructions);
+    let mut crt = Crt::new();
+
+    while !cpu.is_done() {
+        crt.draw_pixel(cpu.cycles, cpu.x_register);
+        cpu.tick();
+    }
+
+    format!("{}", crt)
 }
 
 #[derive(Debug)]
@@ -79,18 +91,24 @@ where
     fn tick(&mut self) {
         match self.state {
             Ready => {
-                let instruction = self.instructions.next().unwrap();
+                let instruction = self.instructions.next();
                 self.state = match instruction {
-                    Noop => Ready,
-                    AddX(value) => Adding(value),
+                    Some(Noop) => Ready,
+                    Some(AddX(value)) => Adding(value),
+                    None => Done,
                 };
             }
             Adding(value) => {
                 self.x_register += value;
                 self.state = Ready;
             }
+            Done => {}
         }
         self.cycles += 1;
+    }
+
+    fn is_done(&self) -> bool {
+        matches!(self.state, Done)
     }
 }
 
@@ -98,6 +116,31 @@ where
 enum CpuState {
     Ready,
     Adding(i32),
+    Done,
+}
+
+struct Crt([u8; 240]);
+
+impl Crt {
+    fn new() -> Self {
+        Self([b'.'; 240])
+    }
+
+    fn draw_pixel(&mut self, cycle: i32, x_register: i32) {
+        let adjusted_register = x_register + 40 * (cycle / 40);
+        if (cycle - 1..=cycle + 1).contains(&adjusted_register) {
+            self.0[usize::try_from(cycle).unwrap()] = b'#';
+        }
+    }
+}
+
+impl Display for Crt {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> FormatResult {
+        for row in self.0.chunks(40) {
+            writeln!(formatter, "{}", std::str::from_utf8(row).unwrap())?;
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -118,14 +161,34 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "TODO"]
     fn part_2_sample_test() {
-        assert_eq!(part_2(SAMLE_INPUT), 0);
+        assert_eq!(
+            part_2(SAMLE_INPUT),
+            String::from(
+                "##..##..##..##..##..##..##..##..##..##..
+###...###...###...###...###...###...###.
+####....####....####....####....####....
+#####.....#####.....#####.....#####.....
+######......######......######......####
+#######.......#######.......#######.....
+"
+            )
+        );
     }
 
     #[test]
-    #[ignore = "TODO"]
     fn part_2_test() {
-        assert_eq!(part_2(INPUT), 0);
+        assert_eq!(
+            part_2(INPUT),
+            String::from(
+                "###....##.####.###..###..####.####..##..
+#..#....#.#....#..#.#..#.#....#....#..#.
+#..#....#.###..#..#.#..#.###..###..#....
+###.....#.#....###..###..#....#....#....
+#.#..#..#.#....#.#..#....#....#....#..#.
+#..#..##..####.#..#.#....####.#.....##..
+"
+            )
+        );
     }
 }
