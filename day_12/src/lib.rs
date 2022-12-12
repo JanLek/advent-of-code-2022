@@ -81,16 +81,18 @@ impl<'a> Index<Point> for HeightMap<'a> {
 }
 
 impl HeightMap<'_> {
+    fn all_points(&self) -> impl Iterator<Item = Point> + '_ {
+        (0..self.num_rows).flat_map(|row| (0..self.num_columns).map(move |column| (row, column)))
+    }
+
     fn find(&self, byte: u8) -> Point {
-        (0..self.num_rows)
-            .flat_map(|row| (0..self.num_columns).map(move |column| (row, column)))
+        self.all_points()
             .find(|&(row, column)| self.data[row * (self.num_columns + 1) + column] == byte)
             .unwrap()
     }
 
     fn find_lowest_points(&self) -> impl Iterator<Item = Point> + '_ {
-        (0..self.num_rows)
-            .flat_map(|row| (0..self.num_columns).map(move |column| (row, column)))
+        self.all_points()
             .filter(|&(row, column)| self.data[row * (self.num_columns + 1) + column] == b'a')
     }
 
