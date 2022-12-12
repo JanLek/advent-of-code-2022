@@ -30,6 +30,38 @@ pub fn part_1(input: &[u8]) -> u32 {
     cache[end].unwrap()
 }
 
+#[must_use]
+pub fn part_2(input: &[u8]) -> u32 {
+    let map = HeightMap::from(input);
+    let end = map.find(b'E');
+
+    map.find_lowest_points()
+        .map(|start| {
+            let mut cache = Cache::new(map.num_rows, map.num_columns);
+            cache[start] = Some(0);
+            let mut queue = VecDeque::from([start]);
+
+            while cache[end].is_none() {
+                if let Some(point) = queue.pop_back() {
+                    let height = map[point];
+                    let num_steps = cache[point].unwrap();
+                    for next_point in map.surrounding_points(point) {
+                        if cache[next_point].is_none() && map[next_point] <= height + 1 {
+                            cache[next_point] = Some(num_steps + 1);
+                            queue.push_front(next_point);
+                        }
+                    }
+                } else {
+                    return u32::MAX;
+                }
+            }
+
+            cache[end].unwrap()
+        })
+        .min()
+        .unwrap()
+}
+
 struct HeightMap<'a> {
     num_columns: usize,
     num_rows: usize,
@@ -67,6 +99,12 @@ impl HeightMap<'_> {
             .flat_map(|row| (0..self.num_columns).map(move |column| (row, column)))
             .find(|&(row, column)| self.data[row * (self.num_columns + 1) + column] == byte)
             .unwrap()
+    }
+
+    fn find_lowest_points(&self) -> impl Iterator<Item = (usize, usize)> + '_ {
+        (0..self.num_rows)
+            .flat_map(|row| (0..self.num_columns).map(move |column| (row, column)))
+            .filter(|&(row, column)| self.data[row * (self.num_columns + 1) + column] == b'a')
     }
 
     fn surrounding_points(
@@ -133,6 +171,16 @@ mod tests {
 
     #[test]
     fn test_part_1() {
-        assert_eq!(part_1(INPUT), 31);
+        assert_eq!(part_1(INPUT), 350);
+    }
+
+    #[test]
+    fn test_part_2_sample() {
+        assert_eq!(part_2(SAMPLE_INPUT), 29);
+    }
+
+    #[test]
+    fn test_part_2() {
+        assert_eq!(part_2(INPUT), 29);
     }
 }
