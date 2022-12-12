@@ -11,56 +11,43 @@ pub fn part_1(input: &[u8]) -> u32 {
     let map = HeightMap::from(input);
     let start = map.find(b'S');
     let end = map.find(b'E');
-    let mut cache = Cache::new(map.num_rows, map.num_columns);
-    cache[start] = Some(0);
-    let mut queue = VecDeque::from([start]);
-
-    while cache[end].is_none() {
-        let point = queue.pop_back().unwrap();
-        let height = map[point];
-        let num_steps = cache[point].unwrap();
-        for next_point in map.surrounding_points(point) {
-            if cache[next_point].is_none() && map[next_point] <= height + 1 {
-                cache[next_point] = Some(num_steps + 1);
-                queue.push_front(next_point);
-            }
-        }
-    }
-
-    cache[end].unwrap()
+    find_shortest_route(&map, start, end).unwrap()
 }
 
 #[must_use]
 pub fn part_2(input: &[u8]) -> u32 {
     let map = HeightMap::from(input);
     let end = map.find(b'E');
-
     map.find_lowest_points()
-        .map(|start| {
-            let mut cache = Cache::new(map.num_rows, map.num_columns);
-            cache[start] = Some(0);
-            let mut queue = VecDeque::from([start]);
-
-            while cache[end].is_none() {
-                if let Some(point) = queue.pop_back() {
-                    let height = map[point];
-                    let num_steps = cache[point].unwrap();
-                    for next_point in map.surrounding_points(point) {
-                        if cache[next_point].is_none() && map[next_point] <= height + 1 {
-                            cache[next_point] = Some(num_steps + 1);
-                            queue.push_front(next_point);
-                        }
-                    }
-                } else {
-                    return u32::MAX;
-                }
-            }
-
-            cache[end].unwrap()
-        })
+        .filter_map(|start| find_shortest_route(&map, start, end))
         .min()
         .unwrap()
 }
+
+fn find_shortest_route(map: &HeightMap, start: Point, end: Point) -> Option<u32> {
+    let mut cache = Cache::new(map.num_rows, map.num_columns);
+    cache[start] = Some(0);
+    let mut queue = VecDeque::from([start]);
+
+    while cache[end].is_none() {
+        if let Some(point) = queue.pop_back() {
+            let height = map[point];
+            let num_steps = cache[point].unwrap();
+            for next_point in map.surrounding_points(point) {
+                if cache[next_point].is_none() && map[next_point] <= height + 1 {
+                    cache[next_point] = Some(num_steps + 1);
+                    queue.push_front(next_point);
+                }
+            }
+        } else {
+            return None;
+        }
+    }
+
+    Some(cache[end].unwrap())
+}
+
+type Point = (usize, usize);
 
 struct HeightMap<'a> {
     num_columns: usize,
@@ -80,10 +67,10 @@ impl<'a> From<&'a [u8]> for HeightMap<'a> {
     }
 }
 
-impl<'a> Index<(usize, usize)> for HeightMap<'a> {
+impl<'a> Index<Point> for HeightMap<'a> {
     type Output = u8;
 
-    fn index(&self, (row, column): (usize, usize)) -> &Self::Output {
+    fn index(&self, (row, column): Point) -> &Self::Output {
         match &self.data[row * (self.num_columns + 1) + column] {
             height @ b'a'..=b'z' => height,
             b'S' => &b'a',
@@ -94,23 +81,20 @@ impl<'a> Index<(usize, usize)> for HeightMap<'a> {
 }
 
 impl HeightMap<'_> {
-    fn find(&self, byte: u8) -> (usize, usize) {
+    fn find(&self, byte: u8) -> Point {
         (0..self.num_rows)
             .flat_map(|row| (0..self.num_columns).map(move |column| (row, column)))
             .find(|&(row, column)| self.data[row * (self.num_columns + 1) + column] == byte)
             .unwrap()
     }
 
-    fn find_lowest_points(&self) -> impl Iterator<Item = (usize, usize)> + '_ {
+    fn find_lowest_points(&self) -> impl Iterator<Item = Point> + '_ {
         (0..self.num_rows)
             .flat_map(|row| (0..self.num_columns).map(move |column| (row, column)))
             .filter(|&(row, column)| self.data[row * (self.num_columns + 1) + column] == b'a')
     }
 
-    fn surrounding_points(
-        &self,
-        (row, column): (usize, usize),
-    ) -> impl Iterator<Item = (usize, usize)> + '_ {
+    fn surrounding_points(&self, (row, column): Point) -> impl Iterator<Item = Point> + '_ {
         row.checked_sub(1)
             .into_iter()
             .chain(Some(row + 1).filter(|&r| r < self.num_rows).into_iter())
@@ -143,16 +127,16 @@ impl Cache {
     }
 }
 
-impl Index<(usize, usize)> for Cache {
+impl Index<Point> for Cache {
     type Output = Option<u32>;
 
-    fn index(&self, (row, column): (usize, usize)) -> &Self::Output {
+    fn index(&self, (row, column): Point) -> &Self::Output {
         &self.data[row * self.num_columns + column]
     }
 }
 
-impl IndexMut<(usize, usize)> for Cache {
-    fn index_mut(&mut self, (row, column): (usize, usize)) -> &mut Self::Output {
+impl IndexMut<Point> for Cache {
+    fn index_mut(&mut self, (row, column): Point) -> &mut Self::Output {
         &mut self.data[row * self.num_columns + column]
     }
 }
@@ -181,6 +165,6 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        assert_eq!(part_2(INPUT), 29);
+        assert_eq!(part_2(INPUT), 349);
     }
 }
