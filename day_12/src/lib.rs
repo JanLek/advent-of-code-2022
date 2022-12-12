@@ -29,12 +29,12 @@ fn find_shortest_route(map: &HeightMap, start: Point, end: Point) -> Option<u32>
     cache[start] = Some(0);
     let mut queue = VecDeque::from([start]);
 
-    while cache[end].is_none() {
+    while !cache.has(end) {
         if let Some(point) = queue.pop_back() {
             let height = map[point];
             let num_steps = cache[point].unwrap();
             for next_point in map.surrounding_points(point) {
-                if cache[next_point].is_none() && map[next_point] <= height + 1 {
+                if !cache.has(next_point) && map[next_point] <= height + 1 {
                     cache[next_point] = Some(num_steps + 1);
                     queue.push_front(next_point);
                 }
@@ -95,21 +95,18 @@ impl HeightMap<'_> {
     }
 
     fn surrounding_points(&self, (row, column): Point) -> impl Iterator<Item = Point> + '_ {
-        row.checked_sub(1)
-            .into_iter()
-            .chain(Some(row + 1).filter(|&r| r < self.num_rows).into_iter())
+        let up = row.checked_sub(1).map(move |r| (r, column)).into_iter();
+        let down = Some(row + 1)
+            .filter(|&r| r < self.num_rows)
             .map(move |r| (r, column))
-            .chain(
-                column
-                    .checked_sub(1)
-                    .into_iter()
-                    .chain(
-                        Some(column + 1)
-                            .filter(|&c| c < self.num_columns)
-                            .into_iter(),
-                    )
-                    .map(move |c| (row, c)),
-            )
+            .into_iter();
+        let left = column.checked_sub(1).map(move |c| (row, c)).into_iter();
+        let right = Some(column + 1)
+            .filter(|&c| c < self.num_columns)
+            .map(move |c| (row, c))
+            .into_iter();
+
+        up.chain(down).chain(left.chain(right))
     }
 }
 
@@ -124,6 +121,10 @@ impl Cache {
             num_columns,
             data: vec![None; num_rows * num_columns],
         }
+    }
+
+    fn has(&self, point: Point) -> bool {
+        self[point].is_some()
     }
 }
 
